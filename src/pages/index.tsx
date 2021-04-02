@@ -1,9 +1,10 @@
 import { GetStaticProps } from 'next';
-
+import Prismic from '@prismicio/client'
 import { getPrismicClient } from '../services/prismic';
 
 import commonStyles from '../styles/common.module.scss';
 import styles from './home.module.scss';
+import { RichText } from 'prismic-dom';
 
 interface Post {
   uid?: string;
@@ -24,13 +25,37 @@ interface HomeProps {
   postsPagination: PostPagination;
 }
 
-// export default function Home() {
-//   // TODO
-// }
+export default function Home({posts} : Post) {
+  // TODO
+}
 
-// export const getStaticProps = async () => {
-//   // const prismic = getPrismicClient();
-//   // const postsResponse = await prismic.query(TODO);
+export const getStaticProps : GetStaticProps = async () => {
+  const prismic = getPrismicClient();
+  const postsResponse = await prismic.query([
+    Prismic.predicates.at('document.type', 'posts')
+  ], {
+    fetch: [ 
+        'post.title',
+        'post.subtitle',
+        'post.author',
+        'post.banner',
+        'post.heading',
+        'post.body']
+    },
+  )};
 
-//   // TODO
-// };
+
+  const posts = postsResponse.results.maps(post => {
+    return {
+      slug: post.uid,
+      title: RichText.asText(post.data.title),
+    }
+  })
+
+    return {
+      props : {
+        posts
+      }
+    }
+
+}
