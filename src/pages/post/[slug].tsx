@@ -3,8 +3,11 @@ import Head from 'next/head';
 
 import { getPrismicClient } from '../../services/prismic';
 
+import Prismic from '@prismicio/client';
+
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
+import { RichText } from 'prismic-dom';
 
 interface Post {
   first_publication_date: string | null;
@@ -32,12 +35,12 @@ export default function Post(post: PostProps) {
   return (
     <>
        <Head>
-          <title>{post.title} | Ignews</title>
+          <title>{post.data.title} | Ignews</title>
        </Head>
         <main className={styles.container}>
             <article className={styles.post}>
-              <h1>{post.title}</h1>
-              <time>{post.updatedAt}</time>
+              <h1>{post.data.title}</h1>
+              <time>{post.data.author}</time>
               {/* <div 
                   className={styles.postContainer}
                   dangerouslySetInnerHTML ={{ __html: post.content}} 
@@ -49,19 +52,52 @@ export default function Post(post: PostProps) {
 
 }
 
-export const getStaticPaths = async () => {
-  // const prismic = getPrismicClient();
-  // const posts = await prismic.query(TODO);
+export const getStaticPaths : GetStaticPaths = async params => {
+  const { slug } = params;
+  
+  const prismic = getPrismicClient();
+  
+  const posts = await prismic.query([
+    Prismic.predicates.at('documents.type', 'posts'),
+  ]);
 
-  // TODO
+  const paths  = posts.results.map(post => ({
+    params: {slug: post.uid},
+  }))
 
+
+  return {
+    paths,
+    fallback: true,
+  }
 
 };
 
-export const getStaticProps = async context => {
-  // const prismic = getPrismicClient();
-  // const response = await prismic.getByUID();
-
+export const getStaticProps  = async context => {
+  const {slug} = context.query;
+  
+  const prismic = getPrismicClient();
   
   // TODO
+  const response = await prismic.getByUID('post', String(slug), {});
+
+
+  const post = {
+    first_publication_date: response.first_publication_date,
+    ...response, //Faço o spread aqui
+
+    data: {
+      ...response.data, //E aqui também
+      title: response.data.title,
+      banner: response.data.banner,
+      author: response.data.author,
+
+      content: response.data.content.map(item => {
+        // item.text = RichText.asText(item.body);
+        item.body = RichText.asHtml(item.body);
+        return item;
+      }),
+    },
+  };
+
 };

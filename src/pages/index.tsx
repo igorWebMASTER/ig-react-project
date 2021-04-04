@@ -13,6 +13,7 @@ import { getPrismicClient } from '../services/prismic';
 
 import commonStyles from '../styles/common.module.scss';
 import styles from './home.module.scss';
+import Header from '../components/Header';
 
 interface Post {
   uid?: string;
@@ -30,65 +31,48 @@ interface PostPagination {
 }
 
 interface HomeProps {
-  response: any;
-  posts: any;
   postsPagination: PostPagination;
 }
 
-export default function Home(props: HomeProps) {
+export default function Home({postsPagination}: HomeProps): JSX.Element {
   // TODO
-  const [posts, setPosts] = useState(props.posts);
-  const [urlNextPage, setUrlNextPage] = useState('')
 
-  function handleNextPagination() {
-    if (!props.response.next_page) {
-      return;
-    }
+ 
+  const [posts, setPosts] = useState<Post[]>(postsPagination.results);
 
-    fetch(props.response.next_page)
-      .then(response => response.json())
-      .then(data => {
-        setUrlNextPage(data.next_page)
-        console.log(urlNextPage);
-        setPosts(data.results)
-      });
-    // [...results, ])
-    // setResults([...results, response])
-    // (props.response.next_page.results)
-  }
 
   return (
     <>
-      <Head>
-        <title>Posts | Spacejam</title>
-      </Head>
+      <Header />
 
       <div
         className={`${commonStyles.commonContainer} ${styles.ContainerHome}`}
       >
-        {props.response.next_page &&
-          posts.map(post => (
-            <main className={styles.container} key={post.slug}>
-              <div className={styles.posts}>
-                <Link href={`/post/${post.slug}`}>
+        {posts.map(post => (
+            <main className={styles.container} key={post.uid}>
+                <Link href={`/post/${post.uid}`}>
+              <div className={styles.posts}>           
                   <a>
-                    <h1>{post.title}</h1>
+                    <h1>{post.data.title}</h1>
                   </a>
-                </Link>
-                <p>{post.subtitle}</p>
+                
+                <p>{post.data.subtitle}</p>
                 <div className={commonStyles.commonInfo}>
                   <div>
-                    <FiCalendar color="#B8B8B8" /> <span>{post.updatedAt}</span>
+                    <FiCalendar color="#B8B8B8" /> <span> {post.first_publication_date} </span>
                   </div>
-                  <span>
-                    <FiUser color="#B8B8B8" /> <span>{post.author}</span>
-                  </span>
+                  <div>
+                    <FiUser color="#B8B8B8" /> <span>{post.data.author}</span>
+                  </div>
                 </div>
               </div>
+              
+              </Link>
 
-              {props.response.next_page && (
+
+              {postsPagination.next_page && (
                 <h2>
-                  <button type="button" onClick={() => handleNextPagination()}>
+                  <button type="button">
                     Carregar posts
                   </button>
                 </h2>
@@ -100,15 +84,13 @@ export default function Home(props: HomeProps) {
   );
 }
 
-export const getStaticProps: GetStaticProps = async () => {
+export const getStaticProps: GetStaticProps = async ({preview= false}) => {
   const prismic = getPrismicClient();
 
   const response = await prismic.query(
     [Prismic.predicates.at('document.type', 'posts')],
     {
-      fetch: ['posts.title', 'posts.subtitle', 'posts.author'],
       pageSize: 1,
-      page: 1,
     }
   );
 
@@ -116,20 +98,34 @@ export const getStaticProps: GetStaticProps = async () => {
 
   const posts = response.results.map(post => {
     return {
-      slug: post.uid,
-      title: RichText.asText(post.data.title),
-      subtitle: RichText.asText(post.data.subtitle),
-      author: RichText.asText(post.data.author),
-      updatedAt: format(new Date(post.last_publication_date), 'dd MMM yyyy', {
-        locale: ptBR,
-      }),
+      uid: post.uid,
+      first_publication_data: format(new Date(post.first_publication_date), 'dd MMM yyyy', {
+          locale: ptBR,
+        }),
+      data: {
+        title: post.data.title,
+        subtitle: post.data.subtitle,
+        author: post.data.author
+      },
+      // slug: post.uid,
+      // title: RichText.asText(post.data.title),
+      // subtitle: RichText.asText(post.data.subtitle),
+      // author: RichText.asText(post.data.author),
+      // updatedAt: format(new Date(post.last_publication_date), 'dd MMM yyyy', {
+      //   locale: ptBR,
+      // }),
     };
   });
 
+  const postsPagination = {
+    next_page : response.next_page,
+    results: posts,
+  }
+
   return {
     props: {
-      posts,
-      response,
+      postsPagination,
+      preview,
     },
     revalidate: 60 * 60 * 24,
   };
