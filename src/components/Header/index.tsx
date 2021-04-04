@@ -1,6 +1,6 @@
-import Link from "next/link";
+import Link from 'next/link';
 
-import styles from './header.module.scss'
+import styles from './header.module.scss';
 
 export default function Header() {
   // TODO
@@ -10,11 +10,11 @@ export default function Header() {
         <nav>
           <Link href="/">
             <a>
-              <img src="/spacetraveling.svg" alt="logo"/>
+              <img src="/Logo.svg" alt="logo" />
             </a>
           </Link>
         </nav>
       </div>
     </header>
-  )    
+  );
 }
