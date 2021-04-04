@@ -1,1 +1,41 @@
 // TODO
+.commonContainer{
+  max-width: 960px;
+  height: 10rem;
+  margin:0 auto;
+
+  p{
+    line-height: 1.4rem;
+  }
+
+  @media screen and (max-width: 1020px){
+    & {
+      max-width: 90%;
+    }
+  }
+}
+
+.commonInfo{
+  display: flex;
+  align-items: center;
+
+  color: var(--gray-100);
+  margin-top:1rem;
+
+
+  div {
+    margin-right: 1rem;
+    font-weight: 300;
+    font-size:0.9rem;
+    display: flex;
+    align-items: center;
+
+    & > span{
+      margin-left: 0.5rem;
+    }
+  }
+
+ 
+}
+
+

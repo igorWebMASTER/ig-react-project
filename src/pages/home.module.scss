@@ -1,1 +1,54 @@
 // TODO
+.ContainerHome{
+  margin-top: 0.5rem;
+
+
+  button{
+    margin-top: 2rem;
+    font-size: 1rem;
+    background:transparent;
+    border: 0;
+    font-weight: 700;
+    color: var(--pink-500);
+  }
+
+  h2:hover{
+    cursor: pointer;
+  }
+
+  & > main {
+    margin-bottom: 2rem;
+  }
+
+  @media screen and (max-width: 1020px){
+    & {
+      max-width: 90%;
+    }
+  }
+  
+
+}
+
+.posts{
+
+  h1{
+    line-height: 2.5rem;
+  }
+
+  p{
+    margin-top:1rem;
+    color:var(--gray-100);
+  }
+
+  a{
+    transition: color 300ms;
+  }
+
+  a:hover{
+    color:var(--pink-500);
+    cursor:pointer;
+  }
+
+ 
+  
+}
