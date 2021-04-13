@@ -1,1 +1,88 @@
-// TODO
+.banner {
+  width: 100%;
+  height: auto;
+  max-height: 500px;
+}
+
+.postContainer {
+  max-width: 1020px;
+  margin: 3rem auto;
+
+  strong {
+    font-size: 3.2rem;
+    font-weight: 700;
+  }
+
+  @media screen and (max-width: 1020px){
+    & {
+      max-width: 90%;
+      margin-left:auto;
+      margin-right:auto;
+
+    }
+  }
+}
+
+.postInfo {
+  margin-top: 0.7rem;
+  color: var(--gray-300);
+  display: flex;
+  align-items: center;
+
+  time {
+    display: flex;
+    align-items: center;
+    margin-right: 1rem;
+
+    svg  {
+      margin-right: 0.4rem;
+    }
+  }
+
+  span {
+    display: flex;
+    align-items: center;
+    margin-right: 1rem;
+
+    svg {
+      margin-right: 0.4rem;
+    }
+  }
+
+  @media screen and (max-width: 1020px){
+    & {
+      max-width: 90%;
+      margin-left:auto;
+      margin-right:auto;
+    }
+  }
+}
+
+.postContent {
+  margin-top: 3rem;
+  max-width: 1020px;
+
+  div {
+    margin-top: 2rem;
+    max-width: 1020px;
+  }
+
+  strong {
+    font-size: 2.2rem;
+    color: var(--gray-50);
+  }
+
+  p {
+    margin-top: 1rem;
+    font-size: 1.2rem;
+    text-align: justify;
+    color: var(--gray-300);
+  }
+
+  @media screen and (max-width: 1020px){
+    & {
+      max-width: 90%;
+      margin:2rem auto;
+    }
+  }
+}

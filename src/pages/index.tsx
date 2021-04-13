@@ -1,4 +1,4 @@
-import { format } from 'date-fns';
+import { format, formatDistance } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { GetStaticProps } from 'next';
 import Head from 'next/head';
@@ -8,7 +8,7 @@ import Prismic from '@prismicio/client';
 
 import { FiCalendar, FiUser } from 'react-icons/fi';
 
-import { useState } from 'react';
+import { useState, useEffect, ReactElement } from 'react';
 import { getPrismicClient } from '../services/prismic';
 
 import commonStyles from '../styles/common.module.scss';
@@ -34,18 +34,47 @@ interface HomeProps {
   postsPagination: PostPagination;
 }
 
-export default function Home({postsPagination}: HomeProps): JSX.Element {
+export default function Home({postsPagination}: HomeProps) : JSX.Element{
   // TODO
 
- 
+
   const [posts, setPosts] = useState<Post[]>(postsPagination.results);
+  const [nextPage, setNextPage] = useState(postsPagination.next_page);
+  const [handleLoadMoreposts, setHandleLoadMoreposts] = useState(
+    !!postsPagination.next_page
+  );
+  // const [currentPage, setCurrentPage] = useState(1);
 
+  function handlePagination(): void {
+    fetch(postsPagination.next_page)
+      .then(res => res.json())
+      .then(response => {
+        const newPosts = response.results.map(post => {
+          return {
+            uid: post.uid,
+            first_publication_date:  format(new Date(post.first_publication_date), 
+            'dd MMM yyyy', {
+              locale: ptBR,
+            }),
+            data: {
+              title: RichText.asText(post.data.title),
+              subtitle: RichText.asText(post.data.subtitle),
+              author: RichText.asText(post.data.author)
+            }
+          };
+        });
+        setPosts([...posts, ...newPosts]);
+        setHandleLoadMoreposts(!!newPosts.next_page);
+      });
+  }
 
+  
+  
+  
   return (
     <>
       <Header />
-
-      <div
+       <div
         className={`${commonStyles.commonContainer} ${styles.ContainerHome}`}
       >
         {posts.map(post => (
@@ -68,17 +97,17 @@ export default function Home({postsPagination}: HomeProps): JSX.Element {
               </div>
               
               </Link>
-
-
-              {postsPagination.next_page && (
-                <h2>
-                  <button type="button">
-                    Carregar posts
-                  </button>
-                </h2>
-              )}
+              
             </main>
+
+            
           ))}
+
+          {handleLoadMoreposts && (
+            <button type="button" onClick={handlePagination}>
+              Carregar mais posts
+            </button>
+        )}
       </div>
     </>
   );
@@ -94,38 +123,31 @@ export const getStaticProps: GetStaticProps = async ({preview= false}) => {
     }
   );
 
-  // console.log(response);
 
   const posts = response.results.map(post => {
     return {
       uid: post.uid,
-      first_publication_data: format(new Date(post.first_publication_date), 'dd MMM yyyy', {
-          locale: ptBR,
-        }),
+      first_publication_date:  format(new Date(post.first_publication_date), 
+      'dd MMM yyyy', {
+        locale: ptBR,
+      }),
       data: {
-        title: post.data.title,
-        subtitle: post.data.subtitle,
-        author: post.data.author
-      },
-      // slug: post.uid,
-      // title: RichText.asText(post.data.title),
-      // subtitle: RichText.asText(post.data.subtitle),
-      // author: RichText.asText(post.data.author),
-      // updatedAt: format(new Date(post.last_publication_date), 'dd MMM yyyy', {
-      //   locale: ptBR,
-      // }),
+        title: RichText.asText(post.data.title),
+        subtitle: RichText.asText(post.data.subtitle),
+        author: RichText.asText(post.data.author)
+      }
     };
   });
 
+
   const postsPagination = {
-    next_page : response.next_page,
-    results: posts,
+    next_page: response.next_page, 
+    results:posts
   }
 
   return {
     props: {
-      postsPagination,
-      preview,
+      postsPagination
     },
     revalidate: 60 * 60 * 24,
   };

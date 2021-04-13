@@ -1,13 +1,16 @@
-import { GetStaticPaths, GetStaticProps } from 'next';
+import format from 'date-fns/format';
 import Head from 'next/head';
-
-import { getPrismicClient } from '../../services/prismic';
-
+import { ptBR } from 'date-fns/locale';
+import { GetStaticPaths, GetStaticProps } from 'next';
+import { FiCalendar, FiUser, FiClock } from 'react-icons/fi';
 import Prismic from '@prismicio/client';
-
+import { RichText } from 'prismic-dom';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
+import { getPrismicClient } from '../../services/prismic';
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
-import { RichText } from 'prismic-dom';
+import Header from '../../components/Header';
 
 interface Post {
   first_publication_date: string | null;
@@ -30,74 +33,118 @@ interface PostProps {
   post: Post;
 }
 
-export default function Post(post: PostProps) {
-  // TODO
+export default function Post({ post }: PostProps): JSX.Element {
+  const route = useRouter();
+
+  if (route.isFallback) {
+    return <p>Carregando...</p>;
+  }
+
+
+  const totalTime = post.data.content.reduce((acc, content) => {
+    const total = RichText.asText(content.body).split(' ');
+
+    const min = Math.ceil(total.length / 200);
+    return acc + min;
+  }, 0);
+
+  const formatedDate = format(
+    new Date(post.first_publication_date),
+    'dd MMM yyyy',
+    {
+      locale: ptBR,
+    }
+  );
+
+
   return (
     <>
-       <Head>
-          <title>{post.data.title} | Ignews</title>
-       </Head>
-        <main className={styles.container}>
-            <article className={styles.post}>
-              <h1>{post.data.title}</h1>
-              <time>{post.data.author}</time>
-              {/* <div 
-                  className={styles.postContainer}
-                  dangerouslySetInnerHTML ={{ __html: post.content}} 
-              /> */}
-            </article>
-        </main>
-     </>
-  )
+      <Header />
 
+      <img className={styles.banner} src={post.data.banner.url} alt="banner" />
+      
+      <main className={styles.postContainer}>
+        <strong>{post.data.title}</strong>
+        <div className={styles.postInfo}>
+          <time>
+            <FiCalendar />
+            {formatedDate}
+          </time>
+          <span>
+            <FiUser />
+            {post.data.author}
+          </span>
+
+          <span>
+            <FiClock />
+            {totalTime} min
+          </span>
+        </div>
+        <section className={styles.postContent}>
+          {post.data.content.map(content => (
+            <h2 key={content.heading}>
+              <strong>{content.heading}</strong>
+              <div
+                dangerouslySetInnerHTML={{ __html: RichText.asHtml(content.body) }}
+              />
+            </h2>
+          ))}
+        </section>
+      </main>
+    </>
+  );
 }
 
-export const getStaticPaths : GetStaticPaths = async params => {
-  const { slug } = params;
-  
+export const getStaticPaths: GetStaticPaths = async () => {
   const prismic = getPrismicClient();
-  
-  const posts = await prismic.query([
-    Prismic.predicates.at('documents.type', 'posts'),
-  ]);
+  const posts = await prismic.query(Prismic.predicates.at['type.posts']);
 
-  const paths  = posts.results.map(post => ({
-    params: {slug: post.uid},
-  }))
-
+  const paths = posts.results.map(post => {
+    return {
+      params: { 
+          slug: post.uid 
+      },
+    };
+  });
 
   return {
     paths,
     fallback: true,
-  }
-
+  };
 };
 
-export const getStaticProps  = async context => {
-  const {slug} = context.query;
-  
+export const getStaticProps: GetStaticProps = async ({
+  params,
+}) => {
   const prismic = getPrismicClient();
-  
-  // TODO
-  const response = await prismic.getByUID('post', String(slug), {});
+  const { slug } = params;
+  const response = await prismic.getByUID('posts', String(slug), {});
 
 
   const post = {
+    uid: response.uid,
     first_publication_date: response.first_publication_date,
-    ...response, //Faço o spread aqui
-
+    last_publication_date: response.last_publication_date,
     data: {
-      ...response.data, //E aqui também
       title: response.data.title,
-      banner: response.data.banner,
+      subtitle: response.data.subtitle,
       author: response.data.author,
-
-      content: response.data.content.map(item => {
-        // item.text = RichText.asText(item.body);
-        item.body = RichText.asHtml(item.body);
-        return item;
+      banner: {
+        url: response.data.banner.url,
+      },
+      content: response.data.content.map(content => {
+        return {
+          heading: content.heading,
+          body: [...content.body],
+        };
       }),
     },
   };
 
+  return {
+    props: {
+      post,
+    },
+    revalidate: 1800,
+  };
 };
