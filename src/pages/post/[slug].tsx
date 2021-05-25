@@ -6,7 +6,6 @@ import { FiCalendar, FiUser, FiClock } from 'react-icons/fi';
 import Prismic from '@prismicio/client';
 import { RichText } from 'prismic-dom';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
 import { getPrismicClient } from '../../services/prismic';
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';

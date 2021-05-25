@@ -58,14 +58,16 @@ export default function Home({postsPagination}: HomeProps) : JSX.Element{
       });
   }
 
-  
-  
-  
+
+
+
   return (
     <>
       <Head>
         <title>Home | spacetraveling</title>
       </Head>
+
+      <Header/>
       <main className={styles.postContainer}>
         <div className={styles.postList}>
           {posts.map(post => (
@@ -75,7 +77,7 @@ export default function Home({postsPagination}: HomeProps) : JSX.Element{
                 <p>{post.data.subtitle}</p>
 
                 <div className={styles.postInfo}>
-                  {/* <time>
+                  <time>
                     <FiCalendar />
                     {format(
                       new Date(post.first_publication_date),
@@ -84,7 +86,7 @@ export default function Home({postsPagination}: HomeProps) : JSX.Element{
                         locale: ptBR,
                       }
                     )}
-                  </time> */}
+                  </time>
                   <span>
                     <FiUser />
                     {post.data.author}
@@ -130,7 +132,7 @@ export const getStaticProps: GetStaticProps = async () => {
 
 
   const postsPagination = {
-    next_page: response.next_page, 
+    next_page: response.next_page,
     results:posts
   }
 
